@@ -1,6 +1,6 @@
 Name: mtx
 Version: 1.3.12
-Release: 5%{?dist}
+Release: 14%{?dist}
 Summary: SCSI media changer control program
 License: GPLv2
 Group: Applications/System
@@ -10,6 +10,10 @@ Patch0: %{name}-1.3.12-destdir.patch
 # http://mtx.opensource-sw.net/bugs/view.php?id=13
 # https://bugzilla.redhat.com/show_bug.cgi?id=538403
 Patch1: %{name}-1.3.12-argc.patch
+Patch2: emc-fix-fail-with-too-high-slot-count_cleanupver.patch
+Patch3: mtx-1.3.12-fix-resource-leak.patch
+Patch4: mtx-1.3.12-scsitape-usage--add-erase.patch
+Patch5: mtx-1.3.12-man-Document-mtx-eject-and-previous-operations.patch
 URL: http://mtx.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -30,6 +34,10 @@ tape at a time, you should install MTX.
 
 %patch0 -p2 -b .destdir
 %patch1 -p2 -b .argc
+%patch2 -p1 -b .emc_slot_count
+%patch3 -p1 -b .fixresourceleak
+%patch4 -p1 -b .scsitape_adderase
+%patch5 -p1 -b .mtxman1upd
 
 # remove exec permission
 chmod a-x contrib/config_sgen_solaris.sh contrib/mtx-changer
@@ -59,6 +67,33 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Mar 16 2016 David Sommerseth <davids@redhat.com> - 1.3.12-14
+- Update scsitape --help screen to show the erase command and improved mtx.1 man page (#948459)
+
+* Wed Mar 16 2016 David Sommerseth <davids@redhat.com> - 1.3.12-13
+- Fix resource leak during processing of import/export information
+
+* Fri Mar 11 2016 David Sommerseth <davids@redhat.com> - 1.3.12-12
+- Fix fail with too high slot count (#1298647)
+
+* Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 1.3.12-11
+- Mass rebuild 2014-01-24
+
+* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 1.3.12-10
+- Mass rebuild 2013-12-27
+
+* Thu Feb 14 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.3.12-9
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
+
+* Fri Jul 20 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.3.12-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
+* Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.3.12-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
+
+* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.3.12-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
 * Thu Nov 19 2009 Dan Horák <dan[at]danny.cz> 1.3.12-5
 - dropped debug output when tools are called with wrong number of arguments (#538403)
 - added patch to support DESTDIR for installing
