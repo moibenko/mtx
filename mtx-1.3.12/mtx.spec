@@ -1,94 +1,192 @@
 Name: mtx
 Version: 1.3.12
-Release: 1%{?dist}
+Release: 5%{?dist}
 Summary: SCSI media changer control program
-License: GPL
-Group: Utilities/System
-Source0: ftp://ftp.opensource-sw.net/pub/mtx/stable/%{name}-%{version}.tar.gz
-Url: http://%{name}.sourceforge.net
-BuildRoot: /var/tmp/%{name}-%{version}
+License: GPLv2
+Group: Applications/System
+Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
+# http://mtx.opensource-sw.net/bugs/view.php?id=9
+Patch0: %{name}-1.3.12-destdir.patch
+# http://mtx.opensource-sw.net/bugs/view.php?id=13
+# https://bugzilla.redhat.com/show_bug.cgi?id=538403
+Patch1: %{name}-1.3.12-argc.patch
+URL: http://mtx.sourceforge.net/
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 
 %description
 The MTX program controls the robotic mechanism in autoloaders and tape
 libraries such as the HP SureStore DAT 40x6, Exabyte EZ-17, and
-Exabyte 220. This program is also reported to work with a variety of other tape
-libraries and autochangers from Tandberg/Overland, Breece Hill, HP, and 
-Seagate.
+Exabyte 220. This program is also reported to work with a variety of
+other tape libraries and autochangers from ADIC, Tandberg/Overland,
+Breece Hill, HP, and Seagate.
+
+If you have a backup tape device capable of handling more than one
+tape at a time, you should install MTX.
+
 
 %prep
 %setup -q
 
+%patch0 -p2 -b .destdir
+%patch1 -p2 -b .argc
+
+# remove exec permission
+chmod a-x contrib/config_sgen_solaris.sh contrib/mtx-changer
+
+
 %build
+export CFLAGS="$RPM_OPT_FLAGS"
 %configure
-make
+make %{?_smp_mflags}
+
 
 %install
-mkdir -p $RPM_BUILD_ROOT/sbin
-install mtx $RPM_BUILD_ROOT/sbin/mtx
-mkdir -p $RPM_BUILD_ROOT/usr/sbin
-install loaderinfo $RPM_BUILD_ROOT/usr/sbin/loaderinfo
-install scsieject $RPM_BUILD_ROOT/usr/sbin/scsieject
-install scsitape $RPM_BUILD_ROOT/usr/sbin/scsitape
-install tapeinfo $RPM_BUILD_ROOT/usr/sbin/tapeinfo
-mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man1
-install mtx.1 $RPM_BUILD_ROOT/%{_mandir}/man1/mtx.1
-install loaderinfo.1 $RPM_BUILD_ROOT/%{_mandir}/man1/loaderinfo.1
-install scsieject.1 $RPM_BUILD_ROOT/%{_mandir}/man1/scsieject.1
-install scsitape.1 $RPM_BUILD_ROOT/%{_mandir}/man1/scsitape.1
-install tapeinfo.1 $RPM_BUILD_ROOT/%{_mandir}/man1/tapeinfo.1
+rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
 
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files 
-%defattr(-,root,root)
-%doc mtx.doc CHANGES README mtxl.README.html
-%doc COMPATABILITY FAQ LICENSE* TODO contrib
+
+%files
+%defattr(-,root,root,-)
+%doc CHANGES COMPATABILITY contrib FAQ LICENSE
+%doc mtx.doc mtxl.README.html README TODO
 %{_mandir}/man1/*
-/sbin/mtx
-/usr/sbin/*
+%{_sbindir}/*
+
 
 %changelog
-* Fri Sep 27 2002 Eric Green <eric@badtux.org>
-- 1.3.0rel
-- move changelog to end.
-- change source directory to ftp.badtux.net. 
-- use * for files to catch new files. 
+* Thu Nov 19 2009 Dan Horák <dan[at]danny.cz> 1.3.12-5
+- dropped debug output when tools are called with wrong number of arguments (#538403)
+- added patch to support DESTDIR for installing
 
-* Wed Apr 18 2001 Kenneth Porter <shiva@well.com>
-- 1.2.12pre1
-- Need to create usr/sbin for install
+* Sat Jul 25 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.3.12-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
 
-* Fri Mar 02 2001 Eric Green <eric@estinc.com>
-- 1.2.11pre6 
-- Move tapeinfo,loaderinfo, scsitape to /usr/sbin rather than /sbin
+* Wed Feb 25 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.3.12-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
 
-* Wed Feb 28 2001 Kenneth Porter <shiva@well.com>
-- 1.2.11pre5
-- Remove commented-out patch.
-- Use mandir FHS macro and configure macro.
-- Install more stuff.
-- Use build policy for stripping.
+* Sun Dec 21 2008 Dan Horák <dan[at]danny.cz> 1.3.12-2
+- spec file cleanup for better compliance with the guidelines
 
-* Wed Jan 17 2001 Eric Green <eric@estinc.com>
-- 1.2.11pre3
-- Removed patch, now use ./configure. 
+* Mon Aug 25 2008 Dan Horák <dan[at]danny.cz> 1.3.12-1
+- update to mtx-1.3.12
 
-* Mon Nov 27 2000 Eric Green <eric@estinc.com>
+* Tue Feb 19 2008 Fedora Release Engineering <rel-eng@fedoraproject.org> - 1.3.11-3
+- Autorebuild for GCC 4.3
+
+* Thu Aug 23 2007 Jindrich Novy <jnovy@redhat.com> 1.3.11-2
+- update License
+- rebuild for BuildID
+
+* Wed Mar 28 2007 Jindrich Novy <jnovy@redhat.com> 1.3.11-1
+- update to 1.3.11 (adds new scsieject utility, bugfixes)
+- sync nostrip patch
+
+* Tue Feb 06 2007 Jindrich Novy <jnovy@redhat.com> 1.3.10-1
+- update to mtx-1.3.10
+- update URL, Source0
+- don't strip debuginfo
+
+* Tue Dec 12 2006 Jindrich Novy <jnovy@redhat.com> 1.2.18-9
+- spec cleanup
+
+* Wed Jul 12 2006 Jesse Keating <jkeating@redhat.com> - 1.2.18-8.2.2
+- rebuild
+
+* Fri Feb 10 2006 Jesse Keating <jkeating@redhat.com> - 1.2.18-8.2.1
+- bump again for double-long bug on ppc(64)
+
+* Tue Feb 07 2006 Jesse Keating <jkeating@redhat.com> - 1.2.18-8.2
+- rebuilt for new gcc4.1 snapshot and glibc changes
+
+* Fri Dec 09 2005 Jesse Keating <jkeating@redhat.com>
+- rebuilt
+
+* Mon Mar  7 2005 Jindrich Novy <jnovy@redhat.com> 1.2.18-8
+- fix type confusion in SCSI_writet(), SCSI_readt(), slow_memcopy()
+  and slow_bzero()
+- rebuilt with gcc4
+
+* Thu Feb 10 2005 Jindrich Novy <jnovy@redhat.com> 1.2.18-7
+- remove -D_FORTIFY_SOURCE=2 from CFLAGS, present in RPM_OPT_FLAGS
+
+* Wed Feb  9 2005 Jindrich Novy <jnovy@redhat.com> 1.2.18-6
+- rebuilt with -D_FORTIFY_SOURCE=2
+
+* Wed Aug 11 2004 Jindrich Novy <jnovy@redhat.com> 1.2.18-5
+- dead code elimination
+- updated spec link to recent source
+- removed spec link to obsolete URL
+- rebuilt
+
+* Tue Jun 15 2004 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
+* Fri Feb 13 2004 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
+* Tue Jan 13 2004 Than Ngo <than@redhat.com> 1.2.18-2
+- rebuild
+
+* Fri Sep 26 2003 Harald Hoyer <harald@redhat.de> 1.2.18-1
+- 1.2.18
+
+* Wed Jun 04 2003 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
+* Wed Jan 22 2003 Tim Powers <timp@redhat.com>
+- rebuilt
+
+* Wed Dec 11 2002 Tim Powers <timp@redhat.com> 1.2.16-6
+- rebuild on all arches
+
+* Fri Jun 21 2002 Tim Powers <timp@redhat.com>
+- automated rebuild
+
+* Wed Jun 19 2002 Than Ngo <than@redhat.com> 1.2.16-4
+- don't forcibly strip binaries
+
+* Thu May 23 2002 Tim Powers <timp@redhat.com>
+- automated rebuild
+
+* Tue Feb 26 2002 Than Ngo <than@redhat.com> 1.2.16-2
+- rebuild
+
+* Tue Feb 19 2002 Bernhard Rosenkraenzer <bero@redhat.com> 1.2.16-1
+- 1.2.16
+
+* Wed Jan 09 2002 Tim Powers <timp@redhat.com>
+- automated rebuild
+
+* Fri Dec 14 2001 Than Ngo <than@redhat.com> 1.2.15-1
+- update to 1.2.15
+
+* Mon Aug 13 2001 Preston Brown <pbrown@redhat.com> 1.2.13-1
+- 1.2.13 fixes "+ Too many Data Transfer Elements Reported" problem (#49258)
+
+* Mon Jun 25 2001 Preston Brown <pbrown@redhat.com>
+- 1.2.12
+- moved binaries to /usr/sbin from /sbin
+
+* Wed Feb 14 2001 Michael Stefaniuc <mstefani@redhat.com>
 - 1.2.10
-- Fixed patching to use the portable.patch.
+- updated %%doc
 
-* Tue Jul 25 2000 Eric Green <eric@estinc.com>
-- 1.2.8
-- Added portability patch to mtx.spec so should compile on Red Hat Alpha etc. 
+* Mon Dec 11 2000 Preston Brown <pbrown@redhat.com>
+- 1.2.9
 
-* Thu Jun 6 2000 Eric Green <eric@estinc.com>
+* Wed Jul 12 2000 Prospector <bugzilla@redhat.com>
+- automatic rebuild
+
+* Thu Jun 15 2000 Preston Brown <pbrown@redhat.com>
 - 1.2.7
-- Fixed single-drive Exabyte 220 special case.
-- Fixed ADIC DAT Autochanger special case.
-- Fixed mtx.spec to move the binaries to /sbin since we need root access
+
+* Tue May 23 2000 Preston Brown <pbrown@redhat.com> 
+- adopted for Winston
 
 * Fri May 12 2000 Kenneth Porter <shiva@well.com>
 - 1.2.6
