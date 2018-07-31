@@ -1,0 +1,123 @@
+diff --git a/mtxl.c b/mtxl.c
+index 3ae77a6..12ea157 100644
+--- a/mtxl.c
++++ b/mtxl.c
+@@ -39,6 +39,9 @@
+ /* zap the following define when we finally add real import/export support */
+ #define IMPORT_EXPORT_HACK 1 /* for the moment, import/export == storage */
+ 
++/* only so many element per SCSI Read Element Status */
++#define SCSI_RES_ELEMENTS 5000
++
+ /* First, do some SCSI routines: */
+ 
+ /* the camlib is used on FreeBSD. */
+@@ -1055,7 +1058,7 @@ static void ParseElementStatus(	int *EmptyStorageElementAddress,
+ 				ElementStatus->DataTransferElementSourceStorageElementNumber[ElementStatus->DataTransferElementCount] =
+ 					BigEndian16(TransportElementDescriptor->SourceStorageElementAddress);
+ 
+-#if DEBUG
++#ifdef DEBUG
+ 				fprintf(stderr, "%d: ElementAddress = %d, Full = %d, SourceElement = %d\n", 
+ 						ElementStatus->DataTransferElementCount,
+ 						ElementStatus->DataTransferElementAddress[ElementStatus->DataTransferElementCount],
+@@ -1141,6 +1144,7 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
+ 	int empty_idx = 0;
+ 	boolean is_attached = false;
+ 	int i,j;
++	int FirstElem, NumElements, NumThisRES;
+ 
+ 	ElementModeSense_T *mode_sense = NULL;
+ 
+@@ -1205,35 +1209,46 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
+ 	{
+ #ifdef DEBUG
+ 		fprintf(stderr,"Using original element status polling method (storage, import/export, drivers etc independantly)\n");
++		fprintf(stderr,"Storage start %d, Num %d, max %d\n", mode_sense->StorageStart, mode_sense->NumStorage - mode_sense->NumImportExport, mode_sense->MaxReadElementStatusData);
+ #endif
+ 		flags->elementtype = StorageElement; /* sigh! */
+-		DataBuffer = SendElementStatusRequest(	MediumChangerFD, RequestSense,
++
++		NumElements = mode_sense->NumStorage - mode_sense->NumImportExport;
++		FirstElem = mode_sense->StorageStart;
++
++		do
++		{
++			NumThisRES = (NumElements > SCSI_RES_ELEMENTS ? SCSI_RES_ELEMENTS : NumElements);
++			DataBuffer = SendElementStatusRequest(	MediumChangerFD, RequestSense,
+ 												inquiry_info, flags,
+-												mode_sense->StorageStart,
++												FirstElem,
+ 												/* adjust for import/export. */
+-												mode_sense->NumStorage - mode_sense->NumImportExport,
+-												mode_sense->MaxReadElementStatusData);
++												NumThisRES,
++												SCSI_RES_ELEMENTS * 52 +120);
+ 
+-		if (!DataBuffer)
+-		{
++			if (!DataBuffer)
++			{
+ #ifdef DEBUG
+-			fprintf(stderr,"Had no elements!\n");
++				fprintf(stderr,"Had no elements!\n");
+ #endif
+-			/* darn. Free up stuff and return. */
++				/* darn. Free up stuff and return. */
+ #ifdef DEBUG_MODE_SENSE
+-			PrintRequestSense(RequestSense);
++				PrintRequestSense(RequestSense);
+ #endif
+-			FreeElementData(ElementStatus);
+-			return NULL; 
+-		}
++				FreeElementData(ElementStatus);
++				return NULL;
++			}
+ 
+ #ifdef DEBUG
+-		fprintf(stderr, "Parsing storage elements\n");
++			fprintf(stderr, "Parsing storage elements\n");
+ #endif
+-		ParseElementStatus(EmptyStorageElementAddress, &EmptyStorageElementCount,
+-			DataBuffer,ElementStatus,mode_sense,NULL);
++			ParseElementStatus(EmptyStorageElementAddress, &EmptyStorageElementCount,
++					   DataBuffer,ElementStatus,mode_sense,NULL);
+ 
+-		free(DataBuffer); /* sigh! */
++			free(DataBuffer); /* sigh! */
++			FirstElem += SCSI_RES_ELEMENTS;
++			NumElements -= SCSI_RES_ELEMENTS;
++		} while ( NumElements > 0 );
+ 
+ 		/* --------------IMPORT/EXPORT--------------- */
+ 		/* Next let's see if we need to do Import/Export: */
+@@ -1247,8 +1262,7 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
+ 													inquiry_info, flags,
+ 													mode_sense->ImportExportStart,
+ 													mode_sense->NumImportExport,
+-													mode_sense->MaxReadElementStatusData);
+-
++												        SCSI_RES_ELEMENTS * 52 +120);
+ 			if (!DataBuffer)
+ 			{
+ #ifdef DEBUG
+@@ -1283,7 +1297,7 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
+ 												inquiry_info, flags,
+ 												mode_sense->DataTransferStart,
+ 												mode_sense->NumDataTransfer,
+-												mode_sense->MaxReadElementStatusData);
++												SCSI_RES_ELEMENTS * 52 +120);
+ 		if (!DataBuffer)
+ 		{
+ #ifdef DEBUG
+@@ -1322,7 +1336,7 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
+ 													inquiry_info, flags,
+ 													mode_sense->MediumTransportStart,
+ 													1, /* only get 1, sigh. */
+-													mode_sense->MaxReadElementStatusData);
++													SCSI_RES_ELEMENTS * 52 +120);
+ 			if (!DataBuffer)
+ 			{
+ #ifdef DEBUG
+
