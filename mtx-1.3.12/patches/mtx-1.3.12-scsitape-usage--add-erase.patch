@@ -1,0 +1,13 @@
+diff --git a/scsitape.c b/scsitape.c
+index dd52dd5..63f4977 100644
+--- a/scsitape.c
++++ b/scsitape.c
+@@ -63,7 +63,7 @@
+ #endif
+ 
+ void Usage(void) {
+-  FatalError("Usage: scsitape -f <generic-device> <command> where <command> is:\n setblk <n> | fsf <n> | bsf <n> | eod | rewind | eject | mark <n> |\n  seek <n> | read [<blksize> [<numblocks]] | write [<blocksize>] \n");
++  FatalError("Usage: scsitape -f <generic-device> <command> where <command> is:\n setblk <n> | fsf <n> | bsf <n> | eod | rewind | eject | erase |\n  mark <n> | seek <n> | read [<blksize> [<numblocks]] |\n  write [<blocksize>]\n");
+ }
+ 
+ #define arg1 (arg[0])  /* for backward compatibility, sigh */
