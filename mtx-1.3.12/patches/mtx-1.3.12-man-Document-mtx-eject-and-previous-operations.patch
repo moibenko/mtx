@@ -1,0 +1,44 @@
+From 26bf6f6794a8a35f69dc2a8a01e69bf50200800f Mon Sep 17 00:00:00 2001
+From: David Sommerseth <davids@redhat.com>
+Date: Fri, 6 May 2016 21:00:58 +0200
+Subject: [PATCH] man: Document mtx eject and previous operations
+
+---
+ mtx.1 | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/mtx.1 b/mtx.1
+index a5e6cc6..108836e 100644
+--- a/mtx.1
++++ b/mtx.1
+@@ -131,13 +131,16 @@ may need to eject the tape using your OS's tape control commands
+ first).  Note that this command may not be what you want on large
+ tape libraries -- e.g. on Exabyte 220, the first slot is usually a
+ cleaning tape. If <drivenum> is omitted, defaults to first drive.
+-
+ .TP 10
+ .B last [<drivenum>]
+ Loads drive <drivenum> from the last slot in the media changer. Unloads
+ the drive if there is already a tape in it. (Note: you may need to eject
+ the tape using your OS's tape control commands first).  
+ .TP 10
++.B previous [<drivenum>]
++Unloads the drive and loads the previous tape in sequence. If the drive
++was empty, loads the first tape into the drive.
++.TP 10
+ .B next [<drivenum>]
+ Unloads the drive and loads the next tape in sequence. If the drive was
+ empty, loads the first tape into the drive.
+@@ -145,6 +148,9 @@ empty, loads the first tape into the drive.
+ .B position <slotnum>
+ Positions the robot at a specific slot. Needed by some changers to
+ move to and open the import/export, or mailbox, slot.
++.TP 10
++.B eject
++Eject the tape currently in the drive.
+ 
+ .SH AUTHORS
+ The original 'mtx' program was written by Leonard Zubkoff and extensively
+-- 
+1.8.3.1
+

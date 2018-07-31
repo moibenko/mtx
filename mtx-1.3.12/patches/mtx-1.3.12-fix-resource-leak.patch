@@ -1,0 +1,11 @@
+--- a/mtxl.c	2016-03-16 18:53:48.947779146 +0100
++++ b/mtxl.c	2016-03-16 18:55:15.592873800 +0100
+@@ -1283,7 +1283,7 @@
+ #endif
+ 			ParseElementStatus(	EmptyStorageElementAddress, &EmptyStorageElementCount,
+ 								DataBuffer, ElementStatus, mode_sense, NULL);
+-
++			free(DataBuffer);
+ 			ElementStatus->StorageElementCount += ElementStatus->ImportExportCount;
+ 		}
+ 
