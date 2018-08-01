@@ -3,16 +3,17 @@
 # USE GMAKE, NOT REGULAR BSD MAKE!)
 #
 # Valid targets:
-#  linux86 freebsd86 solarissparc sgi dec vms 
+#  linux86 freebsd86 solarissparc sgi dec vms
 #
 # Makefile changes by Lars Kellogg-Stedman for better integration with
-# GNU Autoconf. 
+# GNU Autoconf.
 
 # Version # for 'make dist'...
 VERSION=1.3.12
 
 BINS = mtx@EXEEXT@ tapeinfo@EXEEXT@ loaderinfo@EXEEXT@ scsitape@EXEEXT@ scsieject@EXEEXT@
 EXTRA_BINS = nsmhack@EXEEXT@
+LIB=libmtx.a
 DBGS := $(BINS:%@EXEEXT@=%.dbg)
 MAN = mtx.1 tapeinfo.1 loaderinfo.1 scsitape.1 scsieject.1
 MAN_HTML := $(MAN:%.1=%.html)
@@ -46,7 +47,7 @@ VPATH = $(srcdir)
 # Linux on x86...
 #
 ifeq ($(TARGET),linux)
-CFLAGS += -Wall
+CFLAGS += -Wall -fpic -O3
 CPPFLAGS	+= -DLONG_PRINT_REQUEST_SENSE=1
 endif
 
@@ -64,7 +65,7 @@ LIBS		+= -lcam
 endif
 
 ifeq ($(TARGET),hpux)
-CFLAGS += -O -D_HPUX_SOURCE -D __hpux__ 
+CFLAGS += -O -D_HPUX_SOURCE -D __hpux__
 endif
 
 #
@@ -105,7 +106,7 @@ else
 	strip $< -o $@
 endif
 
-all:	$(BINS)
+all:	$(BINS) $(LIB)
 
 dbgs: $(DBGS)
 
@@ -113,7 +114,7 @@ install: $(BINS)
 	$(INSTALL_DIR) $(DESTDIR)$(sbindir)
 	for file in $(BINS); do \
 	$(INSTALL_BIN) "$$file" $(DESTDIR)$(sbindir) ; \
-	done	
+	done
 	$(INSTALL_DIR) $(DESTDIR)$(mandir) $(DESTDIR)$(mandir)/man1
 	for file in mtx.1 tapeinfo.1 scsitape.1 scsieject.1 loaderinfo.1 ; do \
 	$(INSTALL_DOC) "$$file"  $(DESTDIR)$(mandir)/man1 ; \
@@ -132,7 +133,7 @@ distclean: clean
 	rm -f Makefile config.h config.log config.cache config.status
 
 dist: distclean
-	./makedist $(VERSION)	
+	./makedist $(VERSION)
 
 loaderinfo@EXEEXT@: loaderinfo.o mtxl.o mtxl.h mtx.h $(EXTRA)
 	$(CC) $(LDFLAGS) -o loaderinfo@EXEEXT@ loaderinfo.o mtxl.o $(EXTRA) $(LIBS)
@@ -143,7 +144,7 @@ nsmhack@EXEEXT@: nsmhack.o mtxl.o $(EXTRA)
 mtx@EXEEXT@: mtx.o mtxl.o mtxl.h mtx.h $(EXTRA)
 	$(CC) $(LDFLAGS) -o mtx@EXEEXT@ mtx.o mtxl.o $(EXTRA) $(LIBS)
 
-mam2debug@EXEEXT@: mtxl.o mam2debug.o mtx.h $(EXTRA)	
+mam2debug@EXEEXT@: mtxl.o mam2debug.o mtx.h $(EXTRA)
 	$(CC) $(LDFLAGS) -o mam2debug@EXEEXT@ mtxl.o mam2debug.o $(EXTRA) $(LIBS)
 
 tapeinfo@EXEEXT@: tapeinfo.o mtxl.o mtx.h mtxl.h $(EXTRA)
@@ -160,6 +161,9 @@ scsitape.o: scsitape.c mtx.h mtxl.h
 scsieject@EXEEXT@: scsieject.o mtxl.o mtxl.h mtx.h $(EXTRA)
 	$(CC) $(LDFLAGS) -o scsieject@EXEEXT@ scsieject.o mtxl.o $(EXTRA) $(LIBS)
 
+$(LIB): mtx.o mtxl.o
+	ar qvs contrib/$(LIB) mtx.o mtxl.o
+	$(CC) $(LDFLAGS) -shared -o contrib/libmtx.so mtx.o mtxl.o
 scsieject.o: scsieject.c mtx.h mtxl.h
 
 loaderinfo.o: loaderinfo.c mtx.h mtxl.h

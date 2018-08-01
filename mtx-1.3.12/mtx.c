@@ -79,7 +79,8 @@ static char *PeripheralDeviceType[32] =
 static int argc;
 static char **argv;
 
-static char *device=NULL;		/* the device name passed as argument */
+char *device=NULL;		/* the device name passed as argument */
+int absolute_addressing=0; /* if not 0 -  use absolute adresses of storage and tranport elements as known to the robot */
 
 /*	Unfortunately this must be true for SGI, because SGI does not
 	use an int :-(.
@@ -496,14 +497,24 @@ static void Status(void)
 		 TransferElementNumber < ElementStatus->DataTransferElementCount;
 		 TransferElementNumber++)
 	{
-		
+	  if (absolute_addressing==0) {
 		printf("Data Transfer Element %d:", TransferElementNumber);
+	    }
+	  else {
+	        printf("Data Transfer Element %d  :", ElementStatus->DataTransferElementAddress[TransferElementNumber]);
+	  }
 		if (ElementStatus->DataTransferElementFull[TransferElementNumber])
 		{
 			if (ElementStatus->DataTransferElementSourceStorageElementNumber[TransferElementNumber] > -1)
 			{
-				printf("Full (Storage Element %d Loaded)",
-						ElementStatus->DataTransferElementSourceStorageElementNumber[TransferElementNumber]+1);
+			  if (absolute_addressing==0) {
+			      printf("Full (Storage Element %d Loaded)",
+				     ElementStatus->DataTransferElementSourceStorageElementNumber[TransferElementNumber]+1);
+			    }
+			  else {
+			    printf("Full (Storage Element %d Loaded)",
+				   ElementStatus->StorageElementAddress[TransferElementNumber]);
+			  }
 			}
 			else
 			{
@@ -531,9 +542,16 @@ static void Status(void)
 		 StorageElementNumber < ElementStatus->StorageElementCount;
 		 StorageElementNumber++)
 	{
+	  if (absolute_addressing==0) {
 		printf(	"      Storage Element %d%s:%s", StorageElementNumber + 1,
 				(ElementStatus->StorageElementIsImportExport[StorageElementNumber]) ? " IMPORT/EXPORT" : "",
 				(ElementStatus->StorageElementFull[StorageElementNumber] ? "Full " : "Empty"));
+	    }
+	  else {
+		printf(	"      Storage Element %d%s:%s", ElementStatus->StorageElementAddress[StorageElementNumber],
+				(ElementStatus->StorageElementIsImportExport[StorageElementNumber]) ? " IMPORT/EXPORT" : "",
+				(ElementStatus->StorageElementFull[StorageElementNumber] ? "Full " : "Empty"));
+	  }    
 
 		if (ElementStatus->PrimaryVolumeTag[StorageElementNumber][0])
 		{
@@ -918,7 +936,6 @@ void execute_command(struct command_table_struct *command)
 		}
 		open_device();
 	}
-
 	if (!ElementStatus && command->need_status)
 	{
 		inquiry_info = RequestInquiry(MediumChangerFD,&RequestSense);

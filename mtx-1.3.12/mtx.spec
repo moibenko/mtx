@@ -1,6 +1,6 @@
 Name: mtx
 Version: 1.3.12
-Release: 14%{?dist}
+Release: 14fnal_p%{?dist}
 Summary: SCSI media changer control program
 License: GPLv2
 Group: Applications/System
@@ -14,6 +14,7 @@ Patch2: emc-fix-fail-with-too-high-slot-count_cleanupver.patch
 Patch3: mtx-1.3.12-fix-resource-leak.patch
 Patch4: mtx-1.3.12-scsitape-usage--add-erase.patch
 Patch5: mtx-1.3.12-man-Document-mtx-eject-and-previous-operations.patch
+Patch6: mtx-1.3.12-mtx-library.patch
 URL: http://mtx.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -38,6 +39,7 @@ tape at a time, you should install MTX.
 %patch3 -p1 -b .fixresourceleak
 %patch4 -p1 -b .scsitape_adderase
 %patch5 -p1 -b .mtxman1upd
+%patch6 -p2 -b .mtxlib
 
 # remove exec permission
 chmod a-x contrib/config_sgen_solaris.sh contrib/mtx-changer
@@ -67,6 +69,8 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Jul 31 2018 Alexander Moibenko <moibenko@fnal.gov> - 1.3.12-14fnal_p
+- Changes to allow to use mtx as library and show absolute transfer and storage elements as output of status call
 * Wed Mar 16 2016 David Sommerseth <davids@redhat.com> - 1.3.12-14
 - Update scsitape --help screen to show the erase command and improved mtx.1 man page (#948459)
 
@@ -220,14 +224,14 @@ rm -rf $RPM_BUILD_ROOT
 * Thu Jun 15 2000 Preston Brown <pbrown@redhat.com>
 - 1.2.7
 
-* Tue May 23 2000 Preston Brown <pbrown@redhat.com> 
+* Tue May 23 2000 Preston Brown <pbrown@redhat.com>
 - adopted for Winston
 
 * Fri May 12 2000 Kenneth Porter <shiva@well.com>
 - 1.2.6
 - Fixed 'eepos' stuff to use | rather than || (whoops!)
 - Accept a 4-byte element descriptor for the robot arm for certain older
-- autochangers. 
+- autochangers.
 
 * Mon May 8 2000 Kenneth Porter <shiva@well.com>
 - Spell sourceforge right so the link at rpmfind.net will work.
