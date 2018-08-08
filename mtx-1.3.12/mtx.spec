@@ -1,21 +1,10 @@
 Name: mtx
 Version: 1.3.12
-Release: 14fnal_p%{?dist}
+Release: 14fnal%{?dist}
 Summary: SCSI media changer control program
 License: GPLv2
 Group: Applications/System
-Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
-# http://mtx.opensource-sw.net/bugs/view.php?id=9
-Patch0: %{name}-1.3.12-destdir.patch
-# http://mtx.opensource-sw.net/bugs/view.php?id=13
-# https://bugzilla.redhat.com/show_bug.cgi?id=538403
-Patch1: %{name}-1.3.12-argc.patch
-Patch2: emc-fix-fail-with-too-high-slot-count_cleanupver.patch
-Patch3: mtx-1.3.12-fix-resource-leak.patch
-Patch4: mtx-1.3.12-scsitape-usage--add-erase.patch
-Patch5: mtx-1.3.12-man-Document-mtx-eject-and-previous-operations.patch
-Patch6: mtx-1.3.12-mtx-library.patch
-URL: http://mtx.sourceforge.net/
+Source0: mtx-1.3.12.tgz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 
@@ -29,17 +18,10 @@ Breece Hill, HP, and Seagate.
 If you have a backup tape device capable of handling more than one
 tape at a time, you should install MTX.
 
+This is FNAL version of mtx rpm with mtx library.
 
 %prep
 %setup -q
-
-%patch0 -p2 -b .destdir
-%patch1 -p2 -b .argc
-%patch2 -p1 -b .emc_slot_count
-%patch3 -p1 -b .fixresourceleak
-%patch4 -p1 -b .scsitape_adderase
-%patch5 -p1 -b .mtxman1upd
-%patch6 -p2 -b .mtxlib
 
 # remove exec permission
 chmod a-x contrib/config_sgen_solaris.sh contrib/mtx-changer
@@ -69,6 +51,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Aug 1 2018 Alexander Moibenko <moibenko@fnal.gov> - 1.3.12-14fnal
+- All patches applied to code and new source mtx.tgz created to build rpm
+- Changes to allow to use mtx as library and show absolute transfer and storage elements as output of status call
 * Tue Jul 31 2018 Alexander Moibenko <moibenko@fnal.gov> - 1.3.12-14fnal_p
 - Changes to allow to use mtx as library and show absolute transfer and storage elements as output of status call
 * Wed Mar 16 2016 David Sommerseth <davids@redhat.com> - 1.3.12-14
