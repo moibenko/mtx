@@ -209,6 +209,7 @@ typedef struct SCSI_Flags_Struct
 	int has_barcodes;
 	int querytype; //MTX_ELEMENTSTATUS
 	unsigned char invert2; /* used for EXCHANGE command, sigh. */
+        int absolute_addressing; /* indicates that asolute addresses are required */
 }	SCSI_Flags_T;
 
 #ifdef _MSC_VER
@@ -305,6 +306,16 @@ typedef struct Inquiry
   unsigned char VendorFlags;                            /* byte 55 */
 }
 Inquiry_T;
+
+typedef struct InquiryShort
+{
+  unsigned char pad[2];
+  unsigned char VendorIdentification[8];		/* Bytes 8-15 */
+  unsigned char ProductIdentification[16];		/* Bytes 16-31 */
+  unsigned char SerialNumber[12];		/* Bytes 32-43 */
+  
+}
+InquiryShort_T;
 
 /* Hockey Pux may define these. If so, *UN*define them. */
 #ifdef ILI
@@ -499,6 +510,15 @@ typedef struct TransportElementDescriptorShort
 }
 TransportElementDescriptorShort_T;
 
+typedef struct PhysicalLocation
+{
+  unsigned char zone :1;
+  unsigned char : 3;
+  unsigned char row: 4;
+  unsigned char column :3;
+  unsigned char frame  :5;
+} PhysicalLocation_T;
+
 
 typedef struct TransportElementDescriptor
 {
@@ -545,6 +565,7 @@ TransportElementDescriptor_T;
 /* Now for element status data; */
 
 typedef unsigned char barcode[37];
+typedef unsigned char serialnumber[13];
 
 typedef struct ElementStatus {
 
@@ -553,6 +574,9 @@ typedef struct ElementStatus {
   int DataTransferElementCount;
   int *DataTransferElementAddress;  /* array. */
   int *DataTransferElementSourceStorageElementNumber; /* array */
+  int *DataTransferElementPhysicalLocation; /*array */ 
+  serialnumber *DataTransferElementSerialNumber; /*array */ 
+  barcode *StorageElementPhysicalLocation; /*array */ 
   barcode *DataTransferPrimaryVolumeTag; /* array. */
   barcode *DataTransferAlternateVolumeTag; /* array. */
   barcode *PrimaryVolumeTag;  /* array */

@@ -30,7 +30,7 @@
 #include "mtxl.h"
 
 /* #define DEBUG_NSM 1 */
-
+/* #define DEBUG_BARCODE */
 /* #define DEBUG_MODE_SENSE 1 */
 /* #define DEBUG */
 /* #define DEBUG_SCSI */
@@ -527,6 +527,9 @@ static void FreeElementData(ElementStatus_T *data)
 {
 	free(data->DataTransferElementAddress);
 	free(data->DataTransferElementSourceStorageElementNumber);
+	free(data->DataTransferElementPhysicalLocation);
+	free(data->DataTransferElementSerialNumber);
+	free(data->StorageElementPhysicalLocation);
 	free(data->DataTransferPrimaryVolumeTag);
 	free(data->DataTransferAlternateVolumeTag);
 	free(data->PrimaryVolumeTag);
@@ -552,6 +555,12 @@ static ElementStatus_T *AllocateElementData(ElementModeSense_T *mode_sense)
 		(int *)xzmalloc(sizeof(int) * (mode_sense->NumDataTransfer + 1));
 	retval->DataTransferElementSourceStorageElementNumber =
 		(int *)xzmalloc(sizeof(int) * (mode_sense->NumDataTransfer + 1));
+	retval->DataTransferElementPhysicalLocation =
+		(int *)xzmalloc(sizeof(int) * (mode_sense->NumDataTransfer + 1));
+	retval->DataTransferElementSerialNumber =
+		(serialnumber *)xzmalloc(sizeof(serialnumber) * (mode_sense->NumDataTransfer + 1));
+	retval->StorageElementPhysicalLocation =
+		(barcode *)xzmalloc(sizeof(barcode) * (mode_sense->NumStorage + 1));
 	retval->DataTransferPrimaryVolumeTag =
 		(barcode *)xzmalloc(sizeof(barcode) * (mode_sense->NumDataTransfer + 1));
 	retval->DataTransferAlternateVolumeTag =
@@ -589,6 +598,34 @@ void copy_barcode(unsigned char *src, unsigned char *dest)
 		dest++;
 	}
 	*dest = 0; /* null-terminate */
+}
+
+void copy_physical_location(unsigned char *src, unsigned char *dest)
+{
+  while ((*src< 32) || (*src > 127)) {
+    src++;
+  }
+  strcpy((char *)dest, (char *)src);
+}
+
+void copy_serial_number(unsigned char *src, unsigned char *dest)
+{
+  int i;
+  while ((*src< 32) || (*src > 127)) {
+    src++;
+  }
+  for (i=0; i < 12; i++)
+ {
+   *dest = *src++;
+   
+   if ((*dest < 32) || (*dest > 127))
+     {
+       *dest = 0;
+       break;
+     }
+   dest++;
+ }
+ *dest = 0; 
 }
 
 /* This #%!@# routine has more parameters than I can count! */
@@ -654,6 +691,9 @@ static unsigned char *SendElementStatusRequestActual(
 	CDB[5]= (unsigned char)NumElements;
 
 	CDB[6] = 0;			/* Reserved */
+	if (((flags->elementtype == DataTransferElement || flags->elementtype == StorageElement)) && (flags->absolute_addressing == 1)) {
+	  CDB[6] = 0x01;			/* set DVCID to read physical location */
+	}
 
 	/* allocation length */
 	CDB[7]= (unsigned char)(NumBytes >> 16);
@@ -722,7 +762,7 @@ static unsigned char *SendElementStatusRequestActual(
 	/* print a bunch of extra debug data :-(.  */
 	PrintRequestSense(RequestSense); /* see what it sez :-(. */
 	fprintf(stderr,"Data:\n");
-	PrintHex(2, DataBuffer, 40);
+	PrintHex(2, DataBuffer, 100);
 #endif
 	return DataBuffer; /* we succeeded! */
 }
@@ -806,12 +846,13 @@ unsigned char *SendElementStatusRequest(DEVICE_TYPE MediumChangerFD,
  */
 
 static void ParseElementStatus(	int *EmptyStorageElementAddress,
-								int *EmptyStorageElementCount,
-								unsigned char *DataBuffer,
-								ElementStatus_T *ElementStatus,
-								ElementModeSense_T *mode_sense,
-								int *pNextElement
-								)
+				int *EmptyStorageElementCount,
+				unsigned char *DataBuffer,
+				ElementStatus_T *ElementStatus,
+				ElementModeSense_T *mode_sense,
+				int *pNextElement,
+				boolean absolute_address
+				)
 {
 	unsigned char *DataPointer = DataBuffer;
 	TransportElementDescriptor_T TEBuf;
@@ -987,12 +1028,6 @@ static void ParseElementStatus(	int *EmptyStorageElementAddress,
 						ElementStatus->StorageElementCount; /* slot idx. */
 					/*   ElementStatus->StorageElementAddress[ElementStatus->StorageElementCount]; */
 				}
-				if ((TransportElementDescriptorLength >  11) &&
-					(ElementStatusPage->VolBits & E2_AVOLTAG))
-				{
-					copy_barcode(TransportElementDescriptor->AlternateVolumeTag,
-						ElementStatus->AlternateVolumeTag[ElementStatus->StorageElementCount]);
-				}
 				else
 				{
 					ElementStatus->AlternateVolumeTag[ElementStatus->StorageElementCount][0]=0;  /* null string. */;
@@ -1007,7 +1042,11 @@ static void ParseElementStatus(	int *EmptyStorageElementAddress,
 				{
 					ElementStatus->PrimaryVolumeTag[ElementStatus->StorageElementCount][0]=0; /* null string. */
 				}
-
+				
+				if (absolute_address){
+				  copy_physical_location(TransportElementDescriptor->AlternateVolumeTag, ElementStatus->StorageElementPhysicalLocation[ElementStatus->StorageElementCount]);
+				}
+				
 				ElementStatus->StorageElementCount++;
 				/*
 					Note that the original mtx had no check here for
@@ -1052,19 +1091,28 @@ static void ParseElementStatus(	int *EmptyStorageElementAddress,
 					continue;
 				*/
 
+				if (absolute_address){
+				  ElementStatus->DataTransferElementPhysicalLocation[ElementStatus->DataTransferElementCount] = 
+				    BigEndian16(TransportElementDescriptor->SourceStorageElementAddress);
+				  InquiryShort_T *inqs;
+				  inqs = (InquiryShort_T *) TransportElementDescriptor->PrimaryVolumeTag;
+				  copy_serial_number(inqs->SerialNumber, ElementStatus->DataTransferElementSerialNumber[ElementStatus->DataTransferElementCount]);
+				  ElementStatus->DataTransferElementCount++;
+				  break;
+				    }
 				ElementStatus->DataTransferElementAddress[ElementStatus->DataTransferElementCount] =
 					BigEndian16(TransportElementDescriptor->ElementAddress);
 				ElementStatus->DataTransferElementFull[ElementStatus->DataTransferElementCount] =
 					TransportElementDescriptor->Full;
 				ElementStatus->DataTransferElementSourceStorageElementNumber[ElementStatus->DataTransferElementCount] =
-					BigEndian16(TransportElementDescriptor->SourceStorageElementAddress);
+				  BigEndian16(TransportElementDescriptor->SourceStorageElementAddress);
 
 #ifdef DEBUG
 				fprintf(stderr, "%d: ElementAddress = %d, Full = %d, SourceElement = %d\n",
-						ElementStatus->DataTransferElementCount,
-						ElementStatus->DataTransferElementAddress[ElementStatus->DataTransferElementCount],
-						ElementStatus->DataTransferElementFull[ElementStatus->DataTransferElementCount],
-						ElementStatus->DataTransferElementSourceStorageElementNumber[ElementStatus->DataTransferElementCount]);
+					ElementStatus->DataTransferElementCount,
+					ElementStatus->DataTransferElementAddress[ElementStatus->DataTransferElementCount],
+					ElementStatus->DataTransferElementFull[ElementStatus->DataTransferElementCount],
+					ElementStatus->DataTransferElementSourceStorageElementNumber[ElementStatus->DataTransferElementCount]);
 #endif
 				if (ElementStatus->DataTransferElementCount >= mode_sense->NumDataTransfer)
 				{
@@ -1213,6 +1261,7 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
 		fprintf(stderr,"Storage start %d, Num %d, max %d\n", mode_sense->StorageStart, mode_sense->NumStorage - mode_sense->NumImportExport, mode_sense->MaxReadElementStatusData);
 #endif
 		flags->elementtype = StorageElement; /* sigh! */
+		flags->absolute_addressing = 1;
 
 		NumElements = mode_sense->NumStorage - mode_sense->NumImportExport;
 		FirstElem = mode_sense->StorageStart;
@@ -1244,13 +1293,14 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
 			fprintf(stderr, "Parsing storage elements\n");
 #endif
 			ParseElementStatus(EmptyStorageElementAddress, &EmptyStorageElementCount,
-					   DataBuffer,ElementStatus,mode_sense,NULL);
+					   DataBuffer,ElementStatus,mode_sense,NULL, true);
 
 			free(DataBuffer); /* sigh! */
 			FirstElem += SCSI_RES_ELEMENTS;
 			NumElements -= SCSI_RES_ELEMENTS;
 		} while ( NumElements > 0 );
-
+		
+		flags->absolute_addressing = 0;
 		/* --------------IMPORT/EXPORT--------------- */
 		/* Next let's see if we need to do Import/Export: */
 		if (mode_sense->NumImportExport > 0)
@@ -1283,7 +1333,7 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
 			dump_data(DataBuffer, 100);		/* dump some data :-(. */
 #endif
 			ParseElementStatus(	EmptyStorageElementAddress, &EmptyStorageElementCount,
-								DataBuffer, ElementStatus, mode_sense, NULL);
+						DataBuffer, ElementStatus, mode_sense, NULL, false);
 			free(DataBuffer);
 			ElementStatus->StorageElementCount += ElementStatus->ImportExportCount;
 		}
@@ -1294,6 +1344,7 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
 		fprintf(stderr,"Sending request for data transfer element (drive) status\n");
 #endif
 		flags->elementtype = DataTransferElement; /* sigh! */
+		flags->absolute_addressing = 0;
 		DataBuffer = SendElementStatusRequest(	MediumChangerFD, RequestSense,
 												inquiry_info, flags,
 												mode_sense->DataTransferStart,
@@ -1316,7 +1367,31 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
 		fprintf(stderr,"Parsing data for data transfer element (drive) status\n");
 #endif
 		ParseElementStatus(	EmptyStorageElementAddress, &EmptyStorageElementCount,
-							DataBuffer,ElementStatus, mode_sense, NULL);
+					DataBuffer,ElementStatus, mode_sense, NULL, false);
+
+		free(DataBuffer); /* sigh! */
+		
+		flags->absolute_addressing = 1;
+		DataBuffer = SendElementStatusRequest(	MediumChangerFD, RequestSense,
+												inquiry_info, flags,
+												mode_sense->DataTransferStart,
+												mode_sense->NumDataTransfer,
+												SCSI_RES_ELEMENTS * 52 +120);
+		if (!DataBuffer)
+		{
+#ifdef DEBUG
+			fprintf(stderr,"No data transfer element status.");
+#endif
+			/* darn. Free up stuff and return. */
+#ifdef DEBUG_MODE_SENSE
+			PrintRequestSense(RequestSense);
+#endif
+			FreeElementData(ElementStatus);
+			return NULL;
+		}
+		ElementStatus->DataTransferElementCount = 0;
+		ParseElementStatus(	EmptyStorageElementAddress, &EmptyStorageElementCount,
+					DataBuffer,ElementStatus, mode_sense, NULL, true);
 
 		free(DataBuffer); /* sigh! */
 
@@ -1354,10 +1429,11 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
 			fprintf(stderr,"Parsing robot arm data\n");
 #endif
 			ParseElementStatus(	EmptyStorageElementAddress, &EmptyStorageElementCount,
-								DataBuffer, ElementStatus, mode_sense, NULL);
+						DataBuffer, ElementStatus, mode_sense, NULL, false);
 
 			free(DataBuffer);
 		}
+		flags->absolute_addressing = 0;
 	}
 	else
 	{
@@ -1400,7 +1476,7 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
 			nLastEl = nNextEl;
 
 			ParseElementStatus(	EmptyStorageElementAddress, &EmptyStorageElementCount,
-								DataBuffer, ElementStatus, mode_sense, &nNextEl);
+						DataBuffer, ElementStatus, mode_sense, &nNextEl, false);
 
 			free(DataBuffer); /* sigh! */
 		}

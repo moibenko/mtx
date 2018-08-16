@@ -80,7 +80,7 @@ static int argc;
 static char **argv;
 
 char *device=NULL;		/* the device name passed as argument */
-int absolute_addressing=0; /* if not 0 -  use absolute adresses of storage and tranport elements as known to the robot */
+int absolute_addressing=1; /* if not 0 -  use absolute adresses of storage and tranport elements as known to the robot */
 
 /*	Unfortunately this must be true for SGI, because SGI does not
 	use an int :-(.
@@ -485,6 +485,7 @@ static void Status(void)
 {
 	int StorageElementNumber;
 	int TransferElementNumber;
+	PhysicalLocation_T *phys_loc;
 
 	printf( "  Storage Changer %s:%d Drives, %d Slots ( %d Import/Export )\n",
 			device,
@@ -501,7 +502,12 @@ static void Status(void)
 		printf("Data Transfer Element %d:", TransferElementNumber);
 	    }
 	  else {
-	        printf("Data Transfer Element %d  :", ElementStatus->DataTransferElementAddress[TransferElementNumber]);
+	    //printf("SSSSSNNNNN %s\n", ElementStatus->DataTransferElementSerialNumber[TransferElementNumber]);
+	        printf("Data Transfer Element %d ", ElementStatus->DataTransferElementAddress[TransferElementNumber]);
+		phys_loc = (PhysicalLocation_T *) &ElementStatus->DataTransferElementPhysicalLocation[TransferElementNumber];
+	        printf("Phys Loc F%u,C%u,R%u,Z%u SN%s:", 
+		       phys_loc->frame, phys_loc->column, phys_loc->row, phys_loc->zone,
+		       ElementStatus->DataTransferElementSerialNumber[TransferElementNumber]);
 	  }
 		if (ElementStatus->DataTransferElementFull[TransferElementNumber])
 		{
@@ -548,9 +554,10 @@ static void Status(void)
 				(ElementStatus->StorageElementFull[StorageElementNumber] ? "Full " : "Empty"));
 	    }
 	  else {
-		printf(	"      Storage Element %d%s:%s", ElementStatus->StorageElementAddress[StorageElementNumber],
-				(ElementStatus->StorageElementIsImportExport[StorageElementNumber]) ? " IMPORT/EXPORT" : "",
-				(ElementStatus->StorageElementFull[StorageElementNumber] ? "Full " : "Empty"));
+	    printf(	"      Storage Element %d Phys Loc %s %s:%s ", ElementStatus->StorageElementAddress[StorageElementNumber],
+			ElementStatus->StorageElementPhysicalLocation[StorageElementNumber],
+			(ElementStatus->StorageElementIsImportExport[StorageElementNumber]) ? " IMPORT/EXPORT" : "",
+			(ElementStatus->StorageElementFull[StorageElementNumber] ? "Full " : "Empty"));
 	  }    
 
 		if (ElementStatus->PrimaryVolumeTag[StorageElementNumber][0])
