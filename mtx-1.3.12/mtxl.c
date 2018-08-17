@@ -528,6 +528,7 @@ static void FreeElementData(ElementStatus_T *data)
 	free(data->DataTransferElementAddress);
 	free(data->DataTransferElementSourceStorageElementNumber);
 	free(data->DataTransferElementPhysicalLocation);
+	free(data->DataTransferElementProductId);
 	free(data->DataTransferElementSerialNumber);
 	free(data->StorageElementPhysicalLocation);
 	free(data->DataTransferPrimaryVolumeTag);
@@ -557,6 +558,8 @@ static ElementStatus_T *AllocateElementData(ElementModeSense_T *mode_sense)
 		(int *)xzmalloc(sizeof(int) * (mode_sense->NumDataTransfer + 1));
 	retval->DataTransferElementPhysicalLocation =
 		(int *)xzmalloc(sizeof(int) * (mode_sense->NumDataTransfer + 1));
+	retval->DataTransferElementProductId =
+		(serialnumber *)xzmalloc(sizeof(serialnumber) * (mode_sense->NumDataTransfer + 1));
 	retval->DataTransferElementSerialNumber =
 		(serialnumber *)xzmalloc(sizeof(serialnumber) * (mode_sense->NumDataTransfer + 1));
 	retval->StorageElementPhysicalLocation =
@@ -608,13 +611,13 @@ void copy_physical_location(unsigned char *src, unsigned char *dest)
   strcpy((char *)dest, (char *)src);
 }
 
-void copy_serial_number(unsigned char *src, unsigned char *dest)
+void copy_char_buffer(unsigned char *src, unsigned char *dest, int num)
 {
   int i;
   while ((*src< 32) || (*src > 127)) {
     src++;
   }
-  for (i=0; i < 12; i++)
+  for (i=0; i < num; i++)
  {
    *dest = *src++;
    
@@ -1096,7 +1099,8 @@ static void ParseElementStatus(	int *EmptyStorageElementAddress,
 				    BigEndian16(TransportElementDescriptor->SourceStorageElementAddress);
 				  InquiryShort_T *inqs;
 				  inqs = (InquiryShort_T *) TransportElementDescriptor->PrimaryVolumeTag;
-				  copy_serial_number(inqs->SerialNumber, ElementStatus->DataTransferElementSerialNumber[ElementStatus->DataTransferElementCount]);
+				  copy_char_buffer(inqs->SerialNumber, ElementStatus->DataTransferElementSerialNumber[ElementStatus->DataTransferElementCount], 12);
+				  copy_char_buffer(inqs->ProductIdentification+2, ElementStatus->DataTransferElementProductId[ElementStatus->DataTransferElementCount], 12);	  
 				  ElementStatus->DataTransferElementCount++;
 				  break;
 				    }
