@@ -575,6 +575,7 @@ typedef struct ElementStatus {
   int *DataTransferElementAddress;  /* array. */
   int *DataTransferElementSourceStorageElementNumber; /* array */
   int *DataTransferElementPhysicalLocation; /*array */ 
+  serialnumber *DataTransferElementProductId; /*array */ 
   serialnumber *DataTransferElementSerialNumber; /*array */ 
   barcode *StorageElementPhysicalLocation; /*array */ 
   barcode *DataTransferPrimaryVolumeTag; /* array. */

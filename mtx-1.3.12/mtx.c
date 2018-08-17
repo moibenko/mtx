@@ -502,12 +502,13 @@ static void Status(void)
 		printf("Data Transfer Element %d:", TransferElementNumber);
 	    }
 	  else {
-	    //printf("SSSSSNNNNN %s\n", ElementStatus->DataTransferElementSerialNumber[TransferElementNumber]);
 	        printf("Data Transfer Element %d ", ElementStatus->DataTransferElementAddress[TransferElementNumber]);
 		phys_loc = (PhysicalLocation_T *) &ElementStatus->DataTransferElementPhysicalLocation[TransferElementNumber];
-	        printf("Phys Loc F%u,C%u,R%u,Z%u SN%s:", 
+	        printf("Phys Loc F%u,C%u,R%u,Z%u SN%s ID %s:", 
 		       phys_loc->frame, phys_loc->column, phys_loc->row, phys_loc->zone,
-		       ElementStatus->DataTransferElementSerialNumber[TransferElementNumber]);
+		       ElementStatus->DataTransferElementSerialNumber[TransferElementNumber],
+		       ElementStatus->DataTransferElementProductId[TransferElementNumber]
+		       );
 	  }
 		if (ElementStatus->DataTransferElementFull[TransferElementNumber])
 		{
