@@ -1,6 +1,6 @@
 Name: mtx
 Version: 1.3.12
-Release: 14fnal%{?dist}
+Release: 15fnal%{?dist}
 Summary: SCSI media changer control program
 License: GPLv2
 Group: Applications/System
@@ -51,6 +51,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Jan 23 2019 Alexander Moibenko <moibenko@fnal.gov> - 1.3.12-15fnal
+- For absolute_addressing refresh elements data when status command is executed. This is needed to update tape library infortion in the calling program.
+- Changes to allow to use mtx as library and show absolute transfer and storage elements as output of status call
 * Wed Aug 1 2018 Alexander Moibenko <moibenko@fnal.gov> - 1.3.12-14fnal
 - All patches applied to code and new source mtx.tgz created to build rpm
 - Changes to allow to use mtx as library and show absolute transfer and storage elements as output of status call
