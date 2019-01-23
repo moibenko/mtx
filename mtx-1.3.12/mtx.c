@@ -31,7 +31,7 @@
 	Near complete re-write Feb 2000 Eric Lee Green <eric@badtux.org> to add support for
 	multi-drive tape changers, extract out library stuff into mtxl.c,
 	and otherwise bring things up to date for dealing with LARGE tape jukeboxes
-	and other such enterprise-class storage subsystems. 
+	and other such enterprise-class storage subsystems.
 */
 
 char *argv0;
@@ -39,7 +39,7 @@ char *argv0;
 #include "mtx.h"	/* various defines for bit order etc. */
 #include "mtxl.h"
 
-/* A table for printing out the peripheral device type as ASCII. */ 
+/* A table for printing out the peripheral device type as ASCII. */
 static char *PeripheralDeviceType[32] =
 {
 	"Disk Drive",			/* 0 */
@@ -49,10 +49,10 @@ static char *PeripheralDeviceType[32] =
 	"Write-once",			/* 4 */
 	"CD-ROM",				/* 5 */
 	"Scanner",				/* 6 */
-	"Optical",				/* 7 */ 
+	"Optical",				/* 7 */
 	"Medium Changer",		/* 8 */
 	"Communications",		/* 9 */
-	"ASC IT8",				/* a */ 
+	"ASC IT8",				/* a */
 	"ASC IT8",				/* b */
 	"RAID Array",			/* c */
 	"Enclosure Services",	/* d */
@@ -113,7 +113,7 @@ static void Transfer(void);
 static void Eepos(void);
 static void NoAttach(void);
 static void Version(void);
-static void do_Inventory(void); 
+static void do_Inventory(void);
 static void do_Unload(void);
 static void do_Erase(void);
 static void NoBarCode(void);
@@ -150,7 +150,7 @@ command_table[] =
 	{ 0, "erase", do_Erase, 1, 0},
 	{ 0, "nobarcode", NoBarCode, 0,0},
 	{ 1, "position", do_Position, 1, 1},
-	{ 0, "invert2", Invert2, 0, 0}, 
+	{ 0, "invert2", Invert2, 0, 0},
 	{ 3, "exchange", Exchange, 1, 1 },
 	{ 0, "altres", AltReadElementStatus, 0,0},
 	{ 0, NULL, NULL }
@@ -185,7 +185,7 @@ static void Usage()
 static void Version(void)
 {
 	fprintf(stderr, "mtx version %s\n\n", VERSION);
-	Usage(); 
+	Usage();
 }
 
 
@@ -259,7 +259,7 @@ static void First(void)
 		arg1 = ElementStatus->DataTransferElementSourceStorageElementNumber[driveno] + 1;
 		if (arg1 == 1)
 		{
-			printf("loading...done.\n");  /* it already has tape #1 in it! */ 
+			printf("loading...done.\n");  /* it already has tape #1 in it! */
 			return;
 		}
 		arg2 = driveno;
@@ -293,7 +293,7 @@ static void Last(void)
 		arg1 = ElementStatus->DataTransferElementSourceStorageElementNumber[driveno] + 1;
 		if (arg1 >= (ElementStatus->StorageElementCount - ElementStatus->ImportExportCount))
 		{
-			printf("loading...done.\n");	/* it already has last tape in it! */ 
+			printf("loading...done.\n");	/* it already has last tape in it! */
 			return;
 		}
 		arg2 = driveno;
@@ -393,7 +393,7 @@ static void Next(void)
 	FatalError("No More Media\n");		/* last slot */
 }
 
-static void do_Inventory(void) 
+static void do_Inventory(void)
 {
 	if (Inventory(MediumChangerFD) < 0)
 	{
@@ -421,7 +421,7 @@ static void do_Erase(void)
 		exit(1);	/* exit with an error status. */
 	}
 }
-	
+
 
 /* This should eject a tape or magazine, depending upon the device sent
  * to.
@@ -442,12 +442,12 @@ static void ReportInquiry(void)
 	int i;
 
 	Inquiry = RequestInquiry(MediumChangerFD,&RequestSense);
-	if (Inquiry == NULL) 
+	if (Inquiry == NULL)
 	{
 		PrintRequestSense(&RequestSense);
 		FatalError("INQUIRY Command Failed\n");
 	}
-	
+
 	printf("Product Type: %s\n", PeripheralDeviceType[Inquiry->PeripheralDeviceType]);
 	printf("Vendor ID: '");
 	for (i = 0; i < sizeof(Inquiry->VendorIdentification); i++)
@@ -494,7 +494,7 @@ static void Status(void)
 			ElementStatus->ImportExportCount);
 
 
-	for (TransferElementNumber = 0; 
+	for (TransferElementNumber = 0;
 		 TransferElementNumber < ElementStatus->DataTransferElementCount;
 		 TransferElementNumber++)
 	{
@@ -504,7 +504,7 @@ static void Status(void)
 	  else {
 	        printf("Data Transfer Element %d ", ElementStatus->DataTransferElementAddress[TransferElementNumber]);
 		phys_loc = (PhysicalLocation_T *) &ElementStatus->DataTransferElementPhysicalLocation[TransferElementNumber];
-	        printf("Phys Loc F%u,C%u,R%u,Z%u SN%s ID %s:", 
+	        printf("Phys Loc F%u,C%u,R%u,Z%u SN%s ID %s:",
 		       phys_loc->frame, phys_loc->column, phys_loc->row, phys_loc->zone,
 		       ElementStatus->DataTransferElementSerialNumber[TransferElementNumber],
 		       ElementStatus->DataTransferElementProductId[TransferElementNumber]
@@ -535,7 +535,7 @@ static void Status(void)
 
 			if (ElementStatus->DataTransferAlternateVolumeTag[TransferElementNumber][0])
 			{
-				printf(":AlternateVolumeTag = %s", ElementStatus->DataTransferAlternateVolumeTag[TransferElementNumber]); 
+				printf(":AlternateVolumeTag = %s", ElementStatus->DataTransferAlternateVolumeTag[TransferElementNumber]);
 			}
 			putchar('\n');
 		}
@@ -559,7 +559,7 @@ static void Status(void)
 			ElementStatus->StorageElementPhysicalLocation[StorageElementNumber],
 			(ElementStatus->StorageElementIsImportExport[StorageElementNumber]) ? " IMPORT/EXPORT" : "",
 			(ElementStatus->StorageElementFull[StorageElementNumber] ? "Full " : "Empty"));
-	  }    
+	  }
 
 		if (ElementStatus->PrimaryVolumeTag[StorageElementNumber][0])
 		{
@@ -588,7 +588,7 @@ void Position(int dest)
 
 void Move(int src, int dest) {
 	RequestSense_T *result; /* from MoveMedium */
-	
+
 	result = MoveMedium(MediumChangerFD, src, dest, ElementStatus, inquiry_info, &SCSI_Flags);
 	if (result)
 	{
@@ -646,7 +646,7 @@ static void Load(void)
 	if (!device_opened)
 	{
 		FatalError("No Media Changer Device Specified\n");
-	} 
+	}
 
 	if (arg1 < 0 || arg1 >= ElementStatus->StorageElementCount)
 	{
@@ -750,7 +750,7 @@ static void Exchange(void)
 	src = ElementStatus->StorageElementAddress[arg1 - 1];
 	dest = ElementStatus->StorageElementAddress[arg2 - 1];
 	dest2 = ElementStatus->StorageElementAddress[arg3 - 1];
-	
+
 	result = ExchangeMedium(MediumChangerFD, src, dest, dest2, ElementStatus, &SCSI_Flags);
 	if (result)
 	{
@@ -809,7 +809,7 @@ static void Unload(void)
 	if (!device_opened)
 	{
 		FatalError("No Media Changer Device Specified\n");
-	} 
+	}
 
 	/* okay, we should be there: */
 	if (arg1 < 0)
@@ -866,7 +866,7 @@ static void Unload(void)
 	}
 
 	fprintf(stdout, "Unloading drive %d into Storage Element %d...", arg2, arg1 + 1);
-	fflush(stdout); /* make it real-time :-( */ 
+	fflush(stdout); /* make it real-time :-( */
 
 	Move(src,dest);
 
@@ -878,7 +878,7 @@ static void Unload(void)
 }
 
 /*****************************************************************
- ** ARGUMENT PARSING SUBROUTINES: Parse arguments, dispatch. 
+ ** ARGUMENT PARSING SUBROUTINES: Parse arguments, dispatch.
  *****************************************************************/
 
 /* ***
@@ -886,9 +886,9 @@ static void Unload(void)
  *
  * If we have an actual argument at the index position indicated (i.e. we
  * have not gone off the edge of the world), we return
- * its number. If we don't, or it's not a numeric argument, 
- * we return -1. Note that 'get_arg' is kind of misleading, we only accept 
- * numeric arguments, not any other kind. 
+ * its number. If we don't, or it's not a numeric argument,
+ * we return -1. Note that 'get_arg' is kind of misleading, we only accept
+ * numeric arguments, not any other kind.
  */
 int get_arg(int idx)
 {
@@ -924,12 +924,11 @@ void open_device(void)
 
 
 /* we see if we've got a file open. If not, we open one :-(. Then
- * we execute the actual command. Or not :-(. 
- */ 
+ * we execute the actual command. Or not :-(.
+ */
 void execute_command(struct command_table_struct *command)
 {
 	RequestSense_T RequestSense;
-
 	if (device == NULL && command->need_device)
 	{
 		/* try to get it from TAPE environment variable... */
@@ -944,6 +943,11 @@ void execute_command(struct command_table_struct *command)
 		}
 		open_device();
 	}
+	if (command->need_status && absolute_addressing)
+	{
+	  FreeElementData(ElementStatus);
+	  ElementStatus = NULL;
+	}
 	if (!ElementStatus && command->need_status)
 	{
 		inquiry_info = RequestInquiry(MediumChangerFD,&RequestSense);
@@ -957,7 +961,7 @@ void execute_command(struct command_table_struct *command)
 		if (!ElementStatus)
 		{
 			PrintRequestSense(&RequestSense);
-			FatalError("READ ELEMENT STATUS Command Failed\n"); 
+			FatalError("READ ELEMENT STATUS Command Failed\n");
 		}
 	}
 
@@ -971,8 +975,8 @@ void execute_command(struct command_table_struct *command)
  * load in another tape into drive 0, and we execute these commands one
  * at a time as we come to them. If we don't have a -f at the start, we
  * barf. If we leave out a drive #, we default to drive 0 (the first drive
- * in the cabinet). 
- */ 
+ * in the cabinet).
+ */
 
 int parse_args(void)
 {
@@ -1033,7 +1037,7 @@ int parse_args(void)
 
 				if (command->num_args>=2 && arg1 != -1)
 				{
-					arg2 = get_arg(i); 
+					arg2 = get_arg(i);
 					if (arg2 != -1)
 					{
 						i++;
@@ -1089,7 +1093,7 @@ int main(int ArgCount, char *ArgVector[])
 		if (!ElementStatus)
 		{
 			PrintRequestSense(&RequestSense);
-			FatalError("READ ELEMENT STATUS Command Failed\n"); 
+			FatalError("READ ELEMENT STATUS Command Failed\n");
 		}
 		VMS_DefineStatusSymbols();
 		SCSI_CloseDevice(device, MediumChangerFD);
