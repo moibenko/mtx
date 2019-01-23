@@ -523,8 +523,12 @@ ElementModeSense_T *ReadAssignmentPage(DEVICE_TYPE MediumChangerFD)
 	return retval;
 }
 
-static void FreeElementData(ElementStatus_T *data)
+void FreeElementData(ElementStatus_T *data)
 {
+        if (!data) 
+	{
+	    return;
+	}
 	free(data->DataTransferElementAddress);
 	free(data->DataTransferElementSourceStorageElementNumber);
 	free(data->DataTransferElementPhysicalLocation);
