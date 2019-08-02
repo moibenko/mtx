@@ -57,10 +57,21 @@ $Revision: 193 $
 
 static int pack_id;
 static int sg_timeout;
+int sg_scsi_default_timeout = SG_SCSI_DEFAULT_TIMEOUT;
+
+void set_timeout(int timeout)
+{
+  sg_scsi_default_timeout = HZ*timeout;
+}
+
+int get_timeout(void)
+{
+  return(sg_scsi_default_timeout/HZ);
+}
 
 DEVICE_TYPE SCSI_OpenDevice(char *DeviceName)
 {
-	int timeout = SG_SCSI_DEFAULT_TIMEOUT;
+	int timeout = sg_scsi_default_timeout;
 #ifdef SG_IO
 	int k; /* version */
 #endif
@@ -93,7 +104,7 @@ void SCSI_Set_Timeout(int secs)
  
 void SCSI_Default_Timeout(void)
 {
-	sg_timeout = SG_SCSI_DEFAULT_TIMEOUT;
+	sg_timeout = sg_scsi_default_timeout;
 }
 
 void SCSI_CloseDevice(char *DeviceName, DEVICE_TYPE DeviceFD)
@@ -256,13 +267,13 @@ int SCSI_ExecuteCommand(DEVICE_TYPE DeviceFD,
 
 	int write_length = sizeof(struct sg_header)+CDB_Length;
 	int i;                  /* a random index...          */
-	int result;             /* the result of the write... */ 
+	int result;             /* the result of the write... */
 
 	struct sg_header *Header; /* we actually point this into Command... */
 	struct sg_header *ResultHeader; /* we point this into ResultBuf... */
 
 	/* First, see if we need to set our SCSI timeout to something different */
-	if (sg_timeout != SG_SCSI_DEFAULT_TIMEOUT)
+	if (sg_timeout != sg_scsi_default_timeout)
 	{
 		/* if not default, set it: */
 #ifdef DEBUG_TIMEOUT
@@ -448,9 +459,9 @@ int SCSI_ExecuteCommand(DEVICE_TYPE DeviceFD,
 	}
 
 	/* See if we need to reset our SCSI timeout */
-	if (sg_timeout != SG_SCSI_DEFAULT_TIMEOUT)
+	if (sg_timeout != sg_scsi_default_timeout)
 	{
-		sg_timeout = SG_SCSI_DEFAULT_TIMEOUT; /* reset it back to default */
+		sg_timeout = sg_scsi_default_timeout; /* reset it back to default */
 
 #ifdef DEBUG_TIMEOUT
 		fprintf(stderr,"Setting timeout to %d\n", sg_timeout);

@@ -80,8 +80,7 @@ static int argc;
 static char **argv;
 
 char *device=NULL;		/* the device name passed as argument */
-int absolute_addressing=1; /* if not 0 -  use absolute adresses of storage and tranport elements as known to the robot */
-
+int absolute_addressing=0; /* if not 0 -  use absolute adresses of storage and tranport elements as known to the robot */
 /*	Unfortunately this must be true for SGI, because SGI does not
 	use an int :-(.
 */
@@ -1064,6 +1063,15 @@ int parse_args(void)
 	return 0;
 }
 
+void set_scsi_timeout(int timeout) /* in seconds */
+{
+  set_timeout(timeout);
+}
+
+void get_scsi_timeout(void)
+{
+  return get_timeout( );
+}
 
 
 int main(int ArgCount, char *ArgVector[])
