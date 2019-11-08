@@ -622,7 +622,22 @@ void Move(int src, int dest) {
 	}
 }
 
+void Test_UnitReady(void)
+{
+  int result;
 
+  result = testUnitReady(MediumChangerFD);
+  if (result == 0)
+    {
+      printf("Ready:yes\n");
+    }
+  else
+    {
+      printf("Ready:no\n");
+    }
+}
+
+      
 /* okay, now for the Load, Unload, etc. logic: */
 
 static void Load(void)

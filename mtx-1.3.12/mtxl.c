@@ -1870,7 +1870,7 @@ int ClearUnitAttention(DEVICE_TYPE fd, RequestSense_T *RequestSense)
 								&unit_attention_sense, sizeof(unit_attention_sense),
 								RequestSense) != 0)
 		{
-			fprintf(stderr, "RequestSense (0x03) failed\n");
+		        fprintf(stderr, "RequestSense (0x03) failed\n");
 			return -1;  /* could not do! */
 		}
 
@@ -1882,6 +1882,27 @@ int ClearUnitAttention(DEVICE_TYPE fd, RequestSense_T *RequestSense)
 	}
 	return -1; /* did do! */
 
+}
+
+/* Test unit ready: This will tell us whether the tape drive
+ * is currently ready to read or write.
+ */
+
+int testUnitReady(DEVICE_TYPE fd)
+{
+	RequestSense_T sense;
+	CDB_T CDB;
+	unsigned char buffer[6];
+
+	CDB[0] = 0x00;		/* TEST_UNIT_READY */
+	CDB[1] = 0;
+	CDB[2] = 0;
+	CDB[3] = 0;			/* 1-5 all unused. */
+	CDB[4] = 0;
+	CDB[5] = 0;
+
+	slow_bzero((char *)&sense,sizeof(RequestSense_T));
+	return SCSI_ExecuteCommand(fd,Input,&CDB,6,buffer,0,&sense);
 }
 
 static char Spaces[] = "                                                            ";
