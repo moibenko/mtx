@@ -637,7 +637,7 @@ void Test_UnitReady(void)
     }
 }
 
-      
+
 /* okay, now for the Load, Unload, etc. logic: */
 
 static void Load(void)
@@ -1083,9 +1083,9 @@ void set_scsi_timeout(int timeout) /* in seconds */
   set_timeout(timeout);
 }
 
-void get_scsi_timeout(void)
+int get_scsi_timeout(void)
 {
-  return get_timeout( );
+  return get_timeout();
 }
 
 

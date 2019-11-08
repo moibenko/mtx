@@ -1,10 +1,10 @@
-/* 
+/*
   MTX -- SCSI Tape Attached Medium Changer Control Program
 
   Copyright 1997-1998 Leonard N. Zubkoff <lnz@dandelion.com>
   Copyright 2007-2008 by Robert Nelson <robertn@the-nelsons.org>
   This file created by Eric Lee Green <eric@badtux.org>
-  
+
   This program is free software; you may redistribute and/or modify it under
   the terms of the GNU General Public License Version 2 as published by the
   Free Software Foundation.
@@ -67,8 +67,8 @@ Inquiry_T *RequestInquiry(	DEVICE_TYPE fd,
 
 RequestSense_T *MoveMedium(	DEVICE_TYPE MediumChangerFD,
 							int SourceAddress,
-							int DestinationAddress, 
-							ElementStatus_T *ElementStatus, 
+							int DestinationAddress,
+							ElementStatus_T *ElementStatus,
 							Inquiry_T *inquiry_info,
 							SCSI_Flags_T *flags);
 
@@ -76,7 +76,7 @@ RequestSense_T *ExchangeMedium(	DEVICE_TYPE MediumChangerFD,
 								int SourceAddress,
 								int DestinationAddress,
 								int Dest2Address,
-								ElementStatus_T *ElementStatus, 
+								ElementStatus_T *ElementStatus,
 								SCSI_Flags_T *flags);
 
 RequestSense_T *PositionElement(DEVICE_TYPE MediumChangerFD,
@@ -91,6 +91,9 @@ RequestSense_T *Erase(DEVICE_TYPE fd);        /* send SHORT erase to drive */
 
 void SCSI_Set_Timeout(int secs); /* set the SCSI timeout */
 void SCSI_Default_Timeout(void);  /* go back to default timeout */
+int testUnitReady(DEVICE_TYPE fd); /* issue Test Unit Ready SCSI command */
+void set_timeout(int timeout); /* set scsi operation timeout */
+int get_timeout(void); /* get scsi operation timeout */
 
 /* we may not have this function :-(. */
 #ifdef HAVE_GET_ID_LUN
@@ -98,12 +101,12 @@ void SCSI_Default_Timeout(void);  /* go back to default timeout */
 #endif
 
 /* These two hacks are so that I can stick the tongue out on an
- * NSM optical jukebox. 
- */ 
-NSM_Result_T *RecNSMHack(DEVICE_TYPE MediumChangerFD, 
+ * NSM optical jukebox.
+ */
+NSM_Result_T *RecNSMHack(DEVICE_TYPE MediumChangerFD,
 			 int param_len, int timeout);
 
-int SendNSMHack(DEVICE_TYPE MediumChangerFD, NSM_Param_T *nsm_command, 
+int SendNSMHack(DEVICE_TYPE MediumChangerFD, NSM_Param_T *nsm_command,
 		int param_len, int timeout);
 
 #endif
