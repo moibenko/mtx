@@ -1103,8 +1103,24 @@ static void ParseElementStatus(	int *EmptyStorageElementAddress,
 				    BigEndian16(TransportElementDescriptor->SourceStorageElementAddress);
 				  InquiryShort_T *inqs;
 				  inqs = (InquiryShort_T *) TransportElementDescriptor->PrimaryVolumeTag;
-				  copy_char_buffer(inqs->SerialNumber, ElementStatus->DataTransferElementSerialNumber[ElementStatus->DataTransferElementCount], 12);
-				  copy_char_buffer(inqs->ProductIdentification+2, ElementStatus->DataTransferElementProductId[ElementStatus->DataTransferElementCount], 12);	  
+				  /* This is a hack to differentiate TS4500 and TFinity returned data */
+				  /* For TFinity 
+				     inqs->VendorIdentification[0] == 0x0
+				     and inqs->VendorIdentification[1] == 0x20
+				  */
+				      if (inqs->VendorIdentification[0] == 0x0 && inqs->VendorIdentification[1] == 0x20)
+				  {
+				    
+				    unsigned char * cptr;
+				    cptr = (unsigned char *) &inqs->VendorIdentification[2];
+				    copy_char_buffer(cptr, ElementStatus->DataTransferElementSerialNumber[ElementStatus->DataTransferElementCount], 12);
+				  }
+				  else
+				  {
+
+				    copy_char_buffer(inqs->SerialNumber, ElementStatus->DataTransferElementSerialNumber[ElementStatus->DataTransferElementCount], 12);
+				    copy_char_buffer(inqs->ProductIdentification+2, ElementStatus->DataTransferElementProductId[ElementStatus->DataTransferElementCount], 12);
+				  }
 				  ElementStatus->DataTransferElementCount++;
 				  break;
 				    }
@@ -1204,6 +1220,8 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
 	int FirstElem, NumElements, NumThisRES;
 
 	ElementModeSense_T *mode_sense = NULL;
+	unsigned char no_barcodes_saved;
+	
 
 	if (inquiry_info->MChngr && inquiry_info->PeripheralDeviceType != MEDIUM_CHANGER_TYPE)
 	{
@@ -1353,6 +1371,7 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
 #endif
 		flags->elementtype = DataTransferElement; /* sigh! */
 		flags->absolute_addressing = 0;
+		
 		DataBuffer = SendElementStatusRequest(	MediumChangerFD, RequestSense,
 												inquiry_info, flags,
 												mode_sense->DataTransferStart,
@@ -1380,11 +1399,14 @@ ElementStatus_T *ReadElementStatus(DEVICE_TYPE MediumChangerFD, RequestSense_T *
 		free(DataBuffer); /* sigh! */
 		
 		flags->absolute_addressing = 1;
+		no_barcodes_saved = flags->no_barcodes;
+		flags->no_barcodes = 1;
 		DataBuffer = SendElementStatusRequest(	MediumChangerFD, RequestSense,
 												inquiry_info, flags,
 												mode_sense->DataTransferStart,
 												mode_sense->NumDataTransfer,
 												SCSI_RES_ELEMENTS * 52 +120);
+		flags->no_barcodes = no_barcodes_saved;
 		if (!DataBuffer)
 		{
 #ifdef DEBUG
