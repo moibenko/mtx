@@ -35,7 +35,7 @@
 */
 
 char *argv0;
-
+#include <ctype.h>
 #include "mtx.h"	/* various defines for bit order etc. */
 #include "mtxl.h"
 
@@ -565,6 +565,24 @@ static void Status(void)
 				(ElementStatus->StorageElementFull[StorageElementNumber] ? "Full " : "Empty"));
 	    }
 	  else {
+	    /* some libraries return garbage in physical location */
+	    /* see if entry has non-printable character */
+	    int sl = strlen(ElementStatus->StorageElementPhysicalLocation[StorageElementNumber]);
+	    int sind = 0;
+
+	    if (sl > 1) {
+	      for (sind = 0; sind < sl; sind++) 
+	      {
+		if ( !isprint(ElementStatus->StorageElementPhysicalLocation[StorageElementNumber][sind])) {
+		    ElementStatus->StorageElementPhysicalLocation[StorageElementNumber][0] = 0;
+		    break;
+		}
+	      }
+	    }
+	    else {
+	      ElementStatus->StorageElementPhysicalLocation[StorageElementNumber][0] = 0;
+	    }  
+		
 	    printf(	"      Storage Element %d Phys Loc %s %s:%s ", ElementStatus->StorageElementAddress[StorageElementNumber],
 			ElementStatus->StorageElementPhysicalLocation[StorageElementNumber],
 			(ElementStatus->StorageElementIsImportExport[StorageElementNumber]) ? " IMPORT/EXPORT" : "",
