@@ -565,10 +565,7 @@ TransportElementDescriptor_T;
 /* Now for element status data; */
 
 typedef unsigned char barcode[37];
-//typedef unsigned char serialnumber[13];
 typedef unsigned char serialnumber[13];
-typedef unsigned char devicetype[17];
-
 
 typedef struct ElementStatus {
 
@@ -578,7 +575,7 @@ typedef struct ElementStatus {
   int *DataTransferElementAddress;  /* array. */
   int *DataTransferElementSourceStorageElementNumber; /* array */
   int *DataTransferElementPhysicalLocation; /*array */ 
-  devicetype *DataTransferElementProductId; /*array */ 
+  serialnumber *DataTransferElementProductId; /*array */ 
   serialnumber *DataTransferElementSerialNumber; /*array */ 
   barcode *StorageElementPhysicalLocation; /*array */ 
   barcode *DataTransferPrimaryVolumeTag; /* array. */
