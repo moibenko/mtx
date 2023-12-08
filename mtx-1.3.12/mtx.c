@@ -1040,6 +1040,17 @@ int parse_args(void)
 			device = argv[i++];
 			open_device(); /* open the device and do a status scan on it... */
 		}
+		else if (strcmp(argv[i], "-a") == 0)
+		{
+			printf("absolute addressing\n");
+			i++;
+                        if (i >= argc)
+                        {
+                                Usage();
+                        }
+			absolute_addressing = 1;
+		}
+
 		else
 		{
 			cmd_tbl_idx = 0;		/* default to the first command... */
