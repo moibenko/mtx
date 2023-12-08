@@ -1,6 +1,6 @@
 Name: mtx
 Version: 1.3.12
-Release: 15fnal%{?dist}
+Release: 19fnal_jinr%{?dist}
 Summary: SCSI media changer control program
 License: GPLv2
 Group: Applications/System
@@ -51,6 +51,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Dec 07 2023 Alexander Moibenko <moibenko@jinr.ru> - 1.3.12-19fnal
+- mtx CLI hasn hidden option (-a) to show status information with absolute addresses
+- Fixed problem seen in JINR where serial number was missing few last symbols 
+
 * Wed Jan 23 2019 Alexander Moibenko <moibenko@fnal.gov> - 1.3.12-15fnal
 - For absolute_addressing refresh elements data when status command is executed. This is needed to update tape library infortion in the calling program.
 - Changes to allow to use mtx as library and show absolute transfer and storage elements as output of status call

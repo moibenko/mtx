@@ -563,7 +563,7 @@ static ElementStatus_T *AllocateElementData(ElementModeSense_T *mode_sense)
 	retval->DataTransferElementPhysicalLocation =
 		(int *)xzmalloc(sizeof(int) * (mode_sense->NumDataTransfer + 1));
 	retval->DataTransferElementProductId =
-		(serialnumber *)xzmalloc(sizeof(serialnumber) * (mode_sense->NumDataTransfer + 1));
+		(devicetype *)xzmalloc(sizeof(devicetype) * (mode_sense->NumDataTransfer + 1));
 	retval->DataTransferElementSerialNumber =
 		(serialnumber *)xzmalloc(sizeof(serialnumber) * (mode_sense->NumDataTransfer + 1));
 	retval->StorageElementPhysicalLocation =
@@ -618,9 +618,16 @@ void copy_physical_location(unsigned char *src, unsigned char *dest)
 void copy_char_buffer(unsigned char *src, unsigned char *dest, int num)
 {
   int i;
-  while ((*src< 32) || (*src > 127)) {
+  char *dest_tmp;
+  dest_tmp = dest;
+  while ((*src<= 32) || (*src > 127)) {
     src++;
   }
+  for (i=0; i < num; i++)
+ {
+   *dest_tmp++ = 0;
+ }
+
   for (i=0; i < num; i++)
  {
    *dest = *src++;
