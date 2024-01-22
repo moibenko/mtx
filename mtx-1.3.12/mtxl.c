@@ -632,12 +632,10 @@ void copy_char_buffer(unsigned char *src, unsigned char *dest, int num)
   for (i=0; i < num; i++)
  {
    if (isalnum(*src)) {
-       *dest = *src;
+       *dest++ = *src;
    }
    src++;
-   dest++;
  }
- *dest = 0; 
 }
 
 /* This #%!@# routine has more parameters than I can count! */
