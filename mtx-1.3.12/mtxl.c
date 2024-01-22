@@ -26,6 +26,7 @@
  *	overflow :-(. That could be important if mtxl is SUID for some reason.
 */
 
+#include <ctype.h>
 #include "mtx.h"
 #include "mtxl.h"
 
@@ -630,13 +631,10 @@ void copy_char_buffer(unsigned char *src, unsigned char *dest, int num)
 
   for (i=0; i < num; i++)
  {
-   *dest = *src++;
-   
-   if ((*dest < 32) || (*dest > 127))
-     {
-       *dest = 0;
-       break;
-     }
+   if (isalnum(*src)) {
+       *dest = *src;
+   }
+   src++;
    dest++;
  }
  *dest = 0; 
