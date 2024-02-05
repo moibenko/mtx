@@ -631,7 +631,7 @@ void copy_char_buffer(unsigned char *src, unsigned char *dest, int num)
 
   for (i=0; i < num; i++)
  {
-   if (isalnum(*src)) {
+   if (isxdigit(*src)) {
        *dest++ = *src;
    }
    src++;
