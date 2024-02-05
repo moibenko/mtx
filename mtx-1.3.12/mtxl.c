@@ -624,7 +624,7 @@ void copy_char_buffer(unsigned char *src, unsigned char *dest, int num)
   while ((*src<= 32) || (*src > 127)) {
     src++;
   }
-  for (i=0; i < num; i++)
+  for (i=0; i <= num; i++)
  {
    *dest_tmp++ = 0;
  }
