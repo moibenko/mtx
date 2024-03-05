@@ -619,11 +619,9 @@ void copy_physical_location(unsigned char *src, unsigned char *dest)
 void copy_char_buffer(unsigned char *src, unsigned char *dest, int num)
 {
   int i;
-  char *dest_tmp;
+  unsigned char *dest_tmp;
   dest_tmp = dest;
-  while ((*src<= 32) || (*src > 127)) {
-    src++;
-  }
+
   for (i=0; i <= num; i++)
  {
    *dest_tmp++ = 0;

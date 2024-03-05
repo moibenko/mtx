@@ -1,6 +1,6 @@
 Name: mtx
 Version: 1.3.12
-Release: 20fnal_jinr%{?dist}
+Release: 21fnal_jinr%{?dist}
 Summary: SCSI media changer control program
 License: GPLv2
 Group: Applications/System
