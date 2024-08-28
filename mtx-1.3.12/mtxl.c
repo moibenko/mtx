@@ -626,7 +626,11 @@ void copy_char_buffer(unsigned char *src, unsigned char *dest, int num)
  {
    *dest_tmp++ = 0;
  }
-
+  /* there happen cases when serial number begins with several ' ' */
+  /* skip them */
+  while (*src == ' ') {
+    src++;
+  }
   for (i=0; i < num; i++)
  {
    if (isxdigit(*src)) {
