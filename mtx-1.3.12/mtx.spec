@@ -51,6 +51,8 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Aug 28 2024
+- More fixes in copying serial number
 * Thu Dec 07 2023 Alexander Moibenko <moibenko@jinr.ru> - 1.3.12-19fnal
 - mtx CLI hasn hidden option (-a) to show status information with absolute addresses
 - Fixed problem seen in JINR where serial number was missing few last symbols 
