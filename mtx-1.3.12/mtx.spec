@@ -1,6 +1,6 @@
 Name: mtx
 Version: 1.3.12
-Release: 22fnal_jinr%{?dist}
+Release: 29fnal_jinr%{?dist}
 Summary: SCSI media changer control program
 License: GPLv2
 Group: Applications/System
@@ -51,6 +51,8 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Apr 01 2025 Alexander Moibenko <moibenko@jinr.ru> - 1.3.12.29fnal_jinr
+- execute_command stopped working on new system replaced it
 * Wed Aug 28 2024  Alexander Moibenko <moibenko@fnal.gov> - 1.3.12.22fnal_jinr 
 - More fixes in copying serial number
 * Thu Dec 07 2023 Alexander Moibenko <moibenko@jinr.ru> - 1.3.12-19fnal

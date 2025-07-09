@@ -483,7 +483,7 @@ static void ReportTapeAlert(DEVICE_TYPE fd)
 	{
 		if (result->data[i])
 		{
-			printf("TapeAlert[%d]: %s.\n", i, tapealert_messages[i]);
+			printf("TapeAlert[%x]: %s.\n", i, tapealert_messages[i]);
 		}
 	}
 

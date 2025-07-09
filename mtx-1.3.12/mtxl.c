@@ -626,6 +626,7 @@ void copy_char_buffer(unsigned char *src, unsigned char *dest, int num)
  {
    *dest_tmp++ = 0;
  }
+  dest_tmp = dest;
   /* there happen cases when serial number begins with several ' ' */
   /* skip them */
   while (*src == ' ') {
@@ -638,6 +639,12 @@ void copy_char_buffer(unsigned char *src, unsigned char *dest, int num)
    }
    src++;
  }
+  /* there happen cases when serial number is '' */
+  /* take care of this */
+  if (strlen(dest_tmp) == 0) {
+    *dest++ = 'X';
+    *dest = 'X';
+  } 
 }
 
 /* This #%!@# routine has more parameters than I can count! */
@@ -1122,7 +1129,6 @@ static void ParseElementStatus(	int *EmptyStorageElementAddress,
 				  }
 				  else
 				  {
-
 				    copy_char_buffer(inqs->SerialNumber, ElementStatus->DataTransferElementSerialNumber[ElementStatus->DataTransferElementCount], 12);
 				    copy_char_buffer(inqs->ProductIdentification+2, ElementStatus->DataTransferElementProductId[ElementStatus->DataTransferElementCount], 12);
 				  }

@@ -1012,6 +1012,60 @@ void execute_command(struct command_table_struct *command)
 	command->command();
 }
 
+/*
+  execute_command used in python call stopped working with
+  new swig and Alma linux 9. The extern declaration did not work
+  As the only command called over python was Status the call to it was
+  implemented
+*/
+void execute_status_command(void)
+{
+        struct command_table_struct command;
+	RequestSense_T RequestSense;
+
+	command = command_table[1];
+	if (device == NULL && command.need_device)
+	{
+		/* try to get it from TAPE environment variable... */
+		device = getenv("CHANGER");
+		if (device == NULL)
+		{
+			device = getenv("TAPE");
+			if (device == NULL)
+			{
+				device = "/dev/changer"; /* Usage(); */
+			}
+		}
+		open_device();
+	}
+	if (command.need_status && absolute_addressing)
+	{
+	  FreeElementData(ElementStatus);
+	  ElementStatus = NULL;
+	}
+	if (!ElementStatus && command.need_status)
+	{
+		inquiry_info = RequestInquiry(MediumChangerFD,&RequestSense);
+		if (!inquiry_info)
+		{
+			PrintRequestSense(&RequestSense);
+			FatalError("INQUIRY command Failed\n");
+		}
+
+		ElementStatus = ReadElementStatus(MediumChangerFD, &RequestSense, inquiry_info, &SCSI_Flags);
+		if (!ElementStatus)
+		{
+			PrintRequestSense(&RequestSense);
+			FatalError("READ ELEMENT STATUS Command Failed\n");
+		}
+	}
+
+	/* okay, now to execute the command... */
+	command.command();
+}
+
+
+
 /* parse_args():
  *   Basically, we are parsing argv/argc. We can have multiple commands
  * on a line now, such as "unload 3 0 load 4 0" to unload one tape and
